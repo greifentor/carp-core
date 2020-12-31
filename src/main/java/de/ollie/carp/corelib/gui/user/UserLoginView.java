@@ -14,6 +14,7 @@ import de.ollie.carp.corelib.event.EventManager;
 import de.ollie.carp.corelib.event.EventType;
 import de.ollie.carp.corelib.gui.Disposable;
 import de.ollie.carp.corelib.gui.PopupDialog;
+import de.ollie.carp.corelib.localization.ResourceManager;
 import de.ollie.carp.corelib.service.AppConfiguration;
 import de.ollie.carp.corelib.service.user.SessionOwner;
 import de.ollie.carp.corelib.service.user.UserAuthorizationService;
@@ -25,26 +26,31 @@ import de.ollie.carp.corelib.service.user.UserAuthorizationService;
  */
 public class UserLoginView extends VerticalLayout implements ComponentEventListener<KeyDownEvent>, Disposable {
 
-	private Button buttonLogin = new Button("Login");
-	private PasswordField passwordFieldPassword = new PasswordField("Passwort");
-	private TextField textFieldUserName = new TextField("Benutzername");
+	private Button buttonLogin;
+	private PasswordField passwordFieldPassword;
+	private TextField textFieldUserName;
 
 	private final transient AppConfiguration appConfiguration;
 	private final transient EventManager eventManager;
+	private final transient ResourceManager resourceManager;
 	private final transient UserAuthorizationService userAuthorizationService;
 	private final transient SessionOwner sessionOwner;
 
-	public UserLoginView(AppConfiguration appConfiguration, EventManager eventManager, SessionOwner sessionOwner,
-			UserAuthorizationService userAuthorizationService) {
+	public UserLoginView(AppConfiguration appConfiguration, EventManager eventManager, ResourceManager resourceManager,
+			SessionOwner sessionOwner, UserAuthorizationService userAuthorizationService) {
 		super();
 		this.appConfiguration = appConfiguration;
 		this.eventManager = eventManager;
+		this.resourceManager = resourceManager;
 		this.sessionOwner = sessionOwner;
 		this.userAuthorizationService = userAuthorizationService;
+		buttonLogin = new Button(resourceManager.getLocalizedString("UserLoginView.buttons.login.label"));
 		buttonLogin.addClickListener(event -> tryLogin());
 		buttonLogin.setWidthFull();
+		passwordFieldPassword = new PasswordField(resourceManager.getLocalizedString("UserLoginView.password.label"));
 		passwordFieldPassword.setWidthFull();
 		passwordFieldPassword.addKeyDownListener(this);
+		textFieldUserName = new TextField(resourceManager.getLocalizedString("UserLoginView.userName.label"));
 		textFieldUserName.setWidthFull();
 		textFieldUserName.setAutofocus(true);
 		textFieldUserName.addKeyDownListener(this);
@@ -63,10 +69,11 @@ public class UserLoginView extends VerticalLayout implements ComponentEventListe
 				.ifPresentOrElse( //
 						userAuthorization -> {
 							sessionOwner.setUserAuthorization(userAuthorization);
-							eventManager.fireEvent(new Event(userAuthorization.getUserLogin(), EventType.LOGGED_IN));
+							eventManager.fireEvent(new Event(userAuthorization.getUserLoginId(), EventType.LOGGED_IN));
 						}, //
 						() -> {
-							PopupDialog.showError("Passwort oder Benutername ist falsch!");
+							PopupDialog.showError(
+									resourceManager.getLocalizedString("UserLoginView.Errors.InvalidLogin.label"));
 							passwordFieldPassword.setValue("");
 							textFieldUserName.focus();
 						});

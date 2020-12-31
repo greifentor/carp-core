@@ -18,4 +18,12 @@ public interface UserAuthorizationService {
 	 */
 	Optional<UserAuthorizationSO> authenticate(String userName, String password);
 
+	/**
+	 * Returns an optional with the user authorization data for the passed user login id.
+	 * 
+	 * @param userLoginId The user login id which the user authorization is to return for.
+	 * @return An optional with the user authorization data.
+	 */
+	Optional<UserAuthorizationSO> getUserAuthorization(UserLoginIdSO userLoginId);
+
 }
