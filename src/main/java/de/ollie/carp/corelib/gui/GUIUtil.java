@@ -8,6 +8,7 @@ import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 
 /**
@@ -39,6 +40,22 @@ public class GUIUtil {
 		return label;
 	}
 
+	public static NumberField createNumberField(String text, int initialValue,
+			HasValue.ValueChangeListener<? super ComponentValueChangeEvent<NumberField, Double>> listener,
+			boolean enabled, int min, int max) {
+		NumberField numberField = new NumberField(text);
+		numberField.setValue((double) initialValue);
+		numberField.setWidthFull();
+		numberField.setEnabled(enabled);
+		numberField.setHasControls(true);
+		numberField.setMax(max);
+		numberField.setMin(min);
+		if (listener != null) { // OLI Adding listener at last is vital to avoid unexpected updates.
+			numberField.addValueChangeListener(listener);
+		}
+		return numberField;
+	}
+
 	public static TextField createTextField(String text, String initialValue, boolean enabled) {
 		return createTextField(text, initialValue, null, enabled);
 	}
@@ -47,12 +64,12 @@ public class GUIUtil {
 			HasValue.ValueChangeListener<? super ComponentValueChangeEvent<TextField, String>> listener,
 			boolean enabled) {
 		TextField textField = new TextField(text);
-		if (listener != null) {
-			textField.addValueChangeListener(listener);
-		}
 		textField.setValue(initialValue);
 		textField.setWidthFull();
 		textField.setEnabled(enabled);
+		if (listener != null) { // OLI Adding listener at last is vital to avoid unexpected updates.
+			textField.addValueChangeListener(listener);
+		}
 		return textField;
 	}
 

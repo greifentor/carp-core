@@ -19,6 +19,7 @@ import lombok.ToString;
 public class UserAuthorizationSO {
 
 	private UserLoginIdSO userLoginId;
+	private String name;
 	private String password;
 	private Set<UserRoleSO> roles;
 
