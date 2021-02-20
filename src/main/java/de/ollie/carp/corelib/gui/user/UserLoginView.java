@@ -16,6 +16,7 @@ import de.ollie.carp.corelib.gui.Disposable;
 import de.ollie.carp.corelib.gui.PopupDialog;
 import de.ollie.carp.corelib.localization.ResourceManager;
 import de.ollie.carp.corelib.service.AppConfiguration;
+import de.ollie.carp.corelib.service.SessionIdSO;
 import de.ollie.carp.corelib.service.user.SessionOwner;
 import de.ollie.carp.corelib.service.user.UserAuthorizationService;
 
@@ -29,6 +30,7 @@ public class UserLoginView extends VerticalLayout implements ComponentEventListe
 	private Button buttonLogin;
 	private PasswordField passwordFieldPassword;
 	private TextField textFieldUserName;
+	private SessionIdSO sessionId;
 
 	private final transient AppConfiguration appConfiguration;
 	private final transient EventManager eventManager;
@@ -36,12 +38,18 @@ public class UserLoginView extends VerticalLayout implements ComponentEventListe
 	private final transient UserAuthorizationService userAuthorizationService;
 	private final transient SessionOwner sessionOwner;
 
-	public UserLoginView(AppConfiguration appConfiguration, EventManager eventManager, ResourceManager resourceManager,
-			SessionOwner sessionOwner, UserAuthorizationService userAuthorizationService) {
+	public UserLoginView(
+			AppConfiguration appConfiguration,
+			EventManager eventManager,
+			ResourceManager resourceManager,
+			SessionOwner sessionOwner,
+			UserAuthorizationService userAuthorizationService,
+			SessionIdSO sessionId) {
 		super();
 		this.appConfiguration = appConfiguration;
 		this.eventManager = eventManager;
 		this.resourceManager = resourceManager;
+		this.sessionId = sessionId;
 		this.sessionOwner = sessionOwner;
 		this.userAuthorizationService = userAuthorizationService;
 		buttonLogin = new Button(resourceManager.getLocalizedString("UserLoginView.buttons.login.label"));
@@ -56,27 +64,28 @@ public class UserLoginView extends VerticalLayout implements ComponentEventListe
 		textFieldUserName.addKeyDownListener(this);
 		setWidthFull();
 		setMargin(false);
-		add( //
-				textFieldUserName, //
-				passwordFieldPassword, //
-				buttonLogin, //
-				new Label(appConfiguration.getName() + " (" + appConfiguration.getVersion() + ")") //
-		);
+		add(
+				textFieldUserName,
+				passwordFieldPassword,
+				buttonLogin,
+				new Label(appConfiguration.getName() + " (" + appConfiguration.getVersion() + ")"));
 	}
 
 	private void tryLogin() {
-		userAuthorizationService.authenticate(textFieldUserName.getValue(), passwordFieldPassword.getValue()) //
-				.ifPresentOrElse( //
-						userAuthorization -> {
-							sessionOwner.setUserAuthorization(userAuthorization);
-							eventManager.fireEvent(new Event(userAuthorization.getUserLoginId(), EventType.LOGGED_IN));
-						}, //
-						() -> {
-							PopupDialog.showError(
-									resourceManager.getLocalizedString("UserLoginView.Errors.InvalidLogin.label"));
-							passwordFieldPassword.setValue("");
-							textFieldUserName.focus();
-						});
+		userAuthorizationService
+				.authenticate(textFieldUserName.getValue(), passwordFieldPassword.getValue())
+				.ifPresentOrElse(userAuthorization -> {
+					sessionOwner.setUserAuthorization(userAuthorization);
+					eventManager
+							.fireEvent(
+									new Event(userAuthorization.getUserLoginId(), EventType.LOGGED_IN)
+											.setParameter("SessionId", sessionId));
+				}, () -> {
+					PopupDialog
+							.showError(resourceManager.getLocalizedString("UserLoginView.Errors.InvalidLogin.label"));
+					passwordFieldPassword.setValue("");
+					textFieldUserName.focus();
+				});
 	}
 
 	@Override
