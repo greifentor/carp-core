@@ -64,11 +64,9 @@ public class UserLoginView extends VerticalLayout implements ComponentEventListe
 		textFieldUserName.addKeyDownListener(this);
 		setWidthFull();
 		setMargin(false);
-		add(
-				textFieldUserName,
-				passwordFieldPassword,
-				buttonLogin,
-				new Label(appConfiguration.getName() + " (" + appConfiguration.getVersion() + ")"));
+		Label labelVersion = new Label(appConfiguration.getName() + " (" + appConfiguration.getVersion() + ")");
+		labelVersion.setHeight("300px");
+		add(textFieldUserName, passwordFieldPassword, buttonLogin, labelVersion);
 	}
 
 	private void tryLogin() {
