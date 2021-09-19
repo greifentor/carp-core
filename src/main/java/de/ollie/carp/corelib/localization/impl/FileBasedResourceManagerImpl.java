@@ -7,31 +7,44 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.inject.Named;
+import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import de.ollie.carp.corelib.localization.LocalizationSO;
 import de.ollie.carp.corelib.localization.ResourceManager;
+import de.ollie.carp.corelib.service.AppConfiguration;
 
 /**
  * An implementation for a file based resource manager.
  *
  * @author ollie (31.12.2020)
  */
-@Named
+@Component
 public class FileBasedResourceManagerImpl implements ResourceManager {
 
 	private static final Logger logger = LogManager.getLogger(FileBasedResourceManagerImpl.class);
 
 	private Map<LocalizationSO, Properties> resources = new HashMap<>();
 
-	public FileBasedResourceManagerImpl() {
+	@Autowired
+	private AppConfiguration appConfiguration;
+	@Autowired
+	private FileBasedResourceManagerConfiguration configuration;
+
+	@PostConstruct
+	private void postConstruct() {
+		logger.info("reading resources from: " + appConfiguration.getVersion());
 		for (LocalizationSO localization : LocalizationSO.values()) {
-			String fileName = System.getProperty("localization.resource.file.name." + localization.name().toLowerCase(),
-					"classpath:localization/carp-s1889_resources_" + localization.name().toLowerCase() + ".properties");
+			String fileName = configuration.getResourceFileName(localization).isEmpty()
+					? "classpath:localization/" + configuration.getFileNamePrefix() + "_resources_"
+							+ localization.name().toLowerCase() + ".properties"
+					: configuration.getResourceFileName(localization);
 			Properties properties = new Properties();
+			logger.info("reading resources from: " + fileName);
 			if (fileName.startsWith("classpath:")) {
 				try {
 					properties
@@ -39,6 +52,9 @@ public class FileBasedResourceManagerImpl implements ResourceManager {
 				} catch (IOException ioe) {
 					throw new IllegalStateException(
 							"Resource not found '" + fileName + "' for localization: " + localization);
+				} catch (Exception e) {
+					throw new IllegalStateException(
+							"Something went wrong while reading '" + fileName + "' for localization: " + localization);
 				}
 			} else {
 				if (!new File(fileName).exists()) {

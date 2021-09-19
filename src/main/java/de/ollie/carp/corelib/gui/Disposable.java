@@ -17,6 +17,8 @@ public interface Disposable {
 			Component component = c.getComponentAt(i);
 			if (component instanceof Disposable) {
 				((Disposable) component).dispose();
+				component.getElement().removeFromTree();
+				c.remove(component);
 			}
 		}
 		c.removeAll();

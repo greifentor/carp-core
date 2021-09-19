@@ -12,12 +12,12 @@ import com.vaadin.flow.component.textfield.TextField;
 import de.ollie.carp.corelib.event.Event;
 import de.ollie.carp.corelib.event.EventManager;
 import de.ollie.carp.corelib.event.EventType;
-import de.ollie.carp.corelib.gui.Disposable;
 import de.ollie.carp.corelib.gui.PopupDialog;
 import de.ollie.carp.corelib.localization.ResourceManager;
 import de.ollie.carp.corelib.service.AppConfiguration;
 import de.ollie.carp.corelib.service.SessionIdSO;
 import de.ollie.carp.corelib.service.user.SessionOwner;
+import de.ollie.carp.corelib.service.user.UserAuthorizationSO;
 import de.ollie.carp.corelib.service.user.UserAuthorizationService;
 
 /**
@@ -25,7 +25,7 @@ import de.ollie.carp.corelib.service.user.UserAuthorizationService;
  *
  * @author ollie (21.12.2020)
  */
-public class UserLoginView extends VerticalLayout implements ComponentEventListener<KeyDownEvent>, Disposable {
+public class UserLoginView extends VerticalLayout implements ComponentEventListener<KeyDownEvent> {
 
 	private Button buttonLogin;
 	private PasswordField passwordFieldPassword;
@@ -74,10 +74,13 @@ public class UserLoginView extends VerticalLayout implements ComponentEventListe
 				.authenticate(textFieldUserName.getValue(), passwordFieldPassword.getValue())
 				.ifPresentOrElse(userAuthorization -> {
 					sessionOwner.setUserAuthorization(userAuthorization);
-					eventManager
-							.fireEvent(
-									new Event(userAuthorization.getUserLoginId(), EventType.LOGGED_IN)
-											.setParameter("SessionId", sessionId));
+					if (eventManager != null) {
+						eventManager
+								.fireEvent(
+										new Event(userAuthorization.getUserLoginId(), EventType.LOGGED_IN)
+												.setParameter("SessionId", sessionId));
+					}
+					loggedIn(userAuthorization);
 				}, () -> {
 					PopupDialog
 							.showError(resourceManager.getLocalizedString("UserLoginView.Errors.InvalidLogin.label"));
@@ -97,8 +100,7 @@ public class UserLoginView extends VerticalLayout implements ComponentEventListe
 		}
 	}
 
-	@Override
-	public void dispose() {
+	public void loggedIn(UserAuthorizationSO userAuthorization) {
 	}
 
 }
